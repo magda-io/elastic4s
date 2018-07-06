@@ -49,7 +49,7 @@ object Build extends AutoPlugin {
       }
     },
     pomExtra := {
-      <url>https://github.com/sksamuel/elastic4s</url>
+      <url>https://github.com/t83714/elastic4s</url>
         <licenses>
           <license>
             <name>Apache 2</name>
@@ -58,8 +58,8 @@ object Build extends AutoPlugin {
           </license>
         </licenses>
         <scm>
-          <url>git@github.com:sksamuel/elastic4s.git</url>
-          <connection>scm:git@github.com:sksamuel/elastic4s.git</connection>
+          <url>https://github.com/t83714/elastic4s.git</url>
+          <connection>scm:git:https://github.com/t83714/elastic4s.git</connection>
         </scm>
         <developers>
           <developer>
@@ -67,12 +67,17 @@ object Build extends AutoPlugin {
             <name>sksamuel</name>
             <url>http://github.com/sksamuel</url>
           </developer>
+          <developer>
+            <id>t83714</id>
+            <name>Jacky Jiang</name>
+            <url>https://github.com/t83714</url>
+          </developer>
         </developers>
     }
   )
 
   override def projectSettings = publishingSettings ++ Seq(
-    organization := org,
+    organization := "io.github.t83714",
     scalaVersion := "2.11.12",
     crossScalaVersions := Seq("2.11.12", "2.12.4"),
     resolvers += Resolver.mavenLocal,
