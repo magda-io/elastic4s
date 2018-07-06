@@ -1,7 +1,7 @@
 package com.sksamuel.elastic4s.http.snapshots
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.sksamuel.elastic4s.http.{HttpEntity, HttpExecutable, HttpRequestClient, HttpResponse}
+import com.sksamuel.elastic4s.http.{HttpEntity, HttpExecutable, HttpRequestClient, HttpResponse, Shards}
 import com.sksamuel.elastic4s.json.XContentFactory
 import com.sksamuel.elastic4s.snapshots.{
   CreateRepository,
@@ -28,7 +28,8 @@ case class Snapshot(snapshot: String,
                     @JsonProperty("start_time_in_millis") startTimeInMillis: Long,
                     @JsonProperty("end_time") endTime: String,
                     @JsonProperty("end_time_in_millis") endTimeInMillis: Long,
-                    @JsonProperty("duration_in_millis") durationInMillis: Long) {
+                    @JsonProperty("duration_in_millis") durationInMillis: Long,
+                    @JsonProperty("shards") shards: Shards) {
   def duration: Duration = durationInMillis.millis
 }
 
