@@ -210,6 +210,8 @@ lazy val aws = Project("elastic4s-aws", file("elastic4s-aws"))
 lazy val tests = Project("elastic4s-tests", file("elastic4s-tests"))
   .settings(
     name := "elastic4s-tests",
+    publish := {},
+    publishArtifact := false,
     libraryDependencies ++= Seq(
       "commons-io"                   % "commons-io"            % CommonsIoVersion % "test",
       "org.mockito"                  % "mockito-all"           % MockitoVersion   % "test",

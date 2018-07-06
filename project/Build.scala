@@ -49,7 +49,6 @@ object Build extends AutoPlugin {
       }
     },
     pomExtra := {
-      <groupId>io.github.t83714</groupId>
       <url>https://github.com/t83714/elastic4s</url>
         <licenses>
           <license>
