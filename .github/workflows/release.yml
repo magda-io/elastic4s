@@ -1,5 +1,7 @@
 name: release
 
+run-name: Release - ${{ inputs.version }} on ${{ inputs.branch }}
+
 on:
   workflow_dispatch:
     inputs:
