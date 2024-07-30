@@ -9,6 +9,7 @@ on:
       - '*.yml'
     branches:
       - master
+      - magda
       - release/*
 
 jobs:
