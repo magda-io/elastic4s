@@ -1,6 +1,6 @@
 import Dependencies._
 
-ThisBuild / organizationName := "com.sksamuel.elastic4s"
+ThisBuild / organizationName := "io.github.t83714"
 
 // Required due to dependency conflict in SBT
 // See https://github.com/sbt/sbt/issues/6997
