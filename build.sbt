@@ -40,7 +40,7 @@ lazy val warnUnusedImport = Seq(
 )
 
 lazy val commonSettings = Seq(
-  organization := "com.sksamuel.elastic4s",
+  organization := "io.github.t83714",
   version := publishVersion,
   resolvers ++= Seq(Resolver.mavenLocal),
   Test / parallelExecution := false,
@@ -76,15 +76,15 @@ lazy val commonJvmSettings = Seq(
 
 
 lazy val pomSettings = Seq(
-  homepage := Some(url("https://github.com/sksamuel/elastic4s")),
+  homepage := Some(url("https://github.com/t83714/elastic4s")),
   licenses := Seq("Apache 2" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
-  scmInfo := Some(ScmInfo(url("https://github.com/sksamuel/elastic4s"), "scm:git:git@github.com:sksamuel/elastic4s.git")),
-  apiURL := Some(url("http://github.com/sksamuel/elastic4s/")),
+  scmInfo := Some(ScmInfo(url("https://github.com/t83714/elastic4s"), "scm:git:git@github.com:t83714/elastic4s.git")),
+  apiURL := Some(url("http://github.com/t83714/elastic4s/")),
   pomExtra := <developers>
     <developer>
-      <id>sksamuel</id>
-      <name>Sam Samuel</name>
-      <url>https://github.com/sksamuel</url>
+      <id>t83714</id>
+      <name>Jacky Jiang</name>
+      <url>https://github.com/t83714</url>
     </developer>
   </developers>
 )
