@@ -9,7 +9,7 @@ on:
       - '*.yml'
     branches:
       - master
-      - magda
+      - opensearch
       - release/*
 
 jobs:
@@ -36,7 +36,7 @@ jobs:
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v3
         with:
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-private-key: ${{ secrets.PGP_SECRET }}
           passphrase: ${{ secrets.PGP_PASSPHRASE }}
 
       - name: GPG user IDs
@@ -49,8 +49,8 @@ jobs:
       - name: publish snapshot
         run: sbt ++2.12.12 publish
         env:
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          OSSRH_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
 
   scala-2_13:
     runs-on: ubuntu-latest
@@ -75,7 +75,7 @@ jobs:
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v3
         with:
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-private-key: ${{ secrets.PGP_SECRET }}
           passphrase: ${{ secrets.PGP_PASSPHRASE }}
 
       - name: GPG user IDs
@@ -88,8 +88,8 @@ jobs:
       - name: publish snapshot
         run: sbt ++2.13.4 publish
         env:
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          OSSRH_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
 
 
   scala-3_0:
@@ -115,7 +115,7 @@ jobs:
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v3
         with:
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-private-key: ${{ secrets.PGP_SECRET }}
           passphrase: ${{ secrets.PGP_PASSPHRASE }}
 
       - name: GPG user IDs
@@ -128,5 +128,5 @@ jobs:
       - name: publish snapshot
         run: sbt ++3.3.0 elastic4s-scala3/publish
         env:
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          OSSRH_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
