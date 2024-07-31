@@ -297,8 +297,9 @@ object IvfParameters {
           )
       }
     }
-    val p = IvfParameters(
-      engine = engine,
+    val p = new IvfParameters(
+      // IVF only supported by faiss so set the engine to faiss if user doesn't
+      engine = if (engine.isEmpty) Some(KnnEngine.faiss) else engine,
       spaceType = spaceType,
       nlist = nlist,
       nprobes = nprobes,
