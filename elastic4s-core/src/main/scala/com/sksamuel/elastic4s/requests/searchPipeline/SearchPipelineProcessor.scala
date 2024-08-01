@@ -56,13 +56,13 @@ object SearchPipelineProcessor {
   */
 case class CustomSearchPipelineProcessor(
     processorType: SearchPipelineProcessorType,
-    jsonContentBuiler: XContentBuilder
+    rawJsonOptions: String
 ) extends SearchPipelineProcessor {
   // for CustomSearchPipelineProcessor, tag, description & ignoreFailure will be supplied via `rawJsonOptions`
   val tag = None
   val description = None
   val ignoreFailure = None
-  def builderFn(): XContentBuilder = jsonContentBuiler
+  def builderFn(): XContentBuilder = XContentFactory.parse(rawJsonOptions)
 }
 
 object CustomSearchPipelineProcessor {
@@ -75,7 +75,7 @@ object CustomSearchPipelineProcessor {
     builder.autofield(id, pipelineData)
     CustomSearchPipelineProcessor(
       processorType = processorType,
-      jsonContentBuiler = builder
+      rawJsonOptions = builder.string
     )
   }
 }

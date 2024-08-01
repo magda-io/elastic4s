@@ -98,6 +98,7 @@ class PutSearchPipelineRequestHandlerTest
               b.field("field", "message")
               b.field("target_field", "notification")
               b.endObject()
+              b.string
             }
           )
         )

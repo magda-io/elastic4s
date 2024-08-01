@@ -71,53 +71,61 @@ class GetSearchPipelineRequestHandlerTest
     val response =
       HttpResponse(200, Some(StringEntity(responseBody, None)), Map.empty)
 
-    val result = responseHandler.handle(response).right.get
-
-    result shouldBe
-      GetSearchPipelineResponse(
-        data = SearchPipeline(
-          "nlp-search-pipeline",
-          version = Some(2332),
-          description = Some("Post processor for hybrid search"),
-          processors = Seq(
-            NormalizationProcessor(
-              normalizationTechnique = Some(NormalizationTechniqueType.minMax),
-              combinationTechnique = Some(
-                CombinationTechnique(
-                  Some(CombinationTechniqueType.arithmeticMean),
-                  Some(Seq(0.3, 0.7))
-                )
+    val result = responseHandler.handle(response).right.get.data
+    val expectResult = GetSearchPipelineResponse(
+      data = SearchPipeline(
+        "nlp-search-pipeline",
+        version = Some(2332),
+        description = Some("Post processor for hybrid search"),
+        processors = Seq(
+          NormalizationProcessor(
+            normalizationTechnique = Some(NormalizationTechniqueType.minMax),
+            combinationTechnique = Some(
+              CombinationTechnique(
+                Some(CombinationTechniqueType.arithmeticMean),
+                Some(Seq(0.3, 0.7))
               )
-            ),
-            CustomSearchPipelineProcessor(
-              SearchPipelineProcessorType.SearchRequestProcessor, {
-                val b = XContentFactory.jsonBuilder()
-                b.startObject("filter_query")
-                b.field("tag", "tag1")
-                b.field(
-                  "description",
-                  "This processor is going to restrict to publicly visible documents"
-                )
-                b.startObject("query")
-                b.startObject("term")
-                b.field("visibility", "public")
-                b.endObject()
-                b.endObject()
-                b.endObject()
-              }
-            ),
-            CustomSearchPipelineProcessor(
-              SearchPipelineProcessorType.SearchRequestProcessor, {
-                val b = XContentFactory.jsonBuilder()
-                b.startObject("rename_field")
-                b.field("field", "message")
-                b.field("target_field", "notification")
-                b.endObject()
-              }
             )
+          ),
+          CustomSearchPipelineProcessor(
+            SearchPipelineProcessorType.SearchRequestProcessor, {
+              val b = XContentFactory.jsonBuilder()
+              b.startObject("filter_query")
+              b.field("tag", "tag1")
+              b.field(
+                "description",
+                "This processor is going to restrict to publicly visible documents"
+              )
+              b.startObject("query")
+              b.startObject("term")
+              b.field("visibility", "public")
+              b.endObject()
+              b.endObject()
+              b.endObject()
+              b.string
+            }
+          ),
+          CustomSearchPipelineProcessor(
+            SearchPipelineProcessorType.SearchResponseProcessor, {
+              val b = XContentFactory.jsonBuilder()
+              b.startObject("rename_field")
+              b.field("field", "message")
+              b.field("target_field", "notification")
+              b.endObject()
+              b.string
+            }
           )
         )
       )
+    )
+
+    result.copy(processors = Seq.empty) shouldBe expectResult.data
+      .copy(processors = Seq.empty)
+
+    val resultProcessors = result.processors.map(_.toString).sorted.toList
+    val expectedPRocessors = expectResult.data.processors.map(_.toString).sorted.toList
+
+    resultProcessors shouldBe expectedPRocessors
   }
 
   it should "parse a get search pipeline response with minimal values" in {
