@@ -6,14 +6,21 @@ case class SearchPipeline(
     id: String,
     version: Option[Int] = None,
     description: Option[String] = None,
-    phaseResultsProcessors: Seq[SearchPipelineProcessor] = Seq(),
-    requestProcessors: Seq[SearchPipelineProcessor] = Seq(),
-    responseProcessors: Seq[SearchPipelineProcessor] = Seq()
+    processors: Seq[SearchPipelineProcessor] = Seq()
 ) {
   def builderFn(): XContentBuilder = {
     val xcb = XContentFactory.jsonBuilder()
     version.foreach(v => xcb.field("version", v))
     description.foreach(v => xcb.field("description", v))
+    val phaseResultsProcessors = processors.filter(p =>
+      p.processorType == SearchPipelineProcessorType.SearchPhaseResultsProcessor
+    )
+    val requestProcessors = processors.filter(p =>
+      p.processorType == SearchPipelineProcessorType.SearchRequestProcessor
+    )
+    val responseProcessors = processors.filter(p =>
+      p.processorType == SearchPipelineProcessorType.SearchResponseProcessor
+    )
     if (phaseResultsProcessors.length > 0) {
       xcb.array(
         "phase_results_processors",
@@ -37,43 +44,24 @@ case class SearchPipeline(
 }
 
 object SearchPipeline {
-  def apply(
-      id: String,
-      version: Option[Int] = None,
-      description: Option[String] = None,
-      phaseResultsProcessors: Seq[SearchPipelineProcessor] = Seq(),
-      requestProcessors: Seq[SearchPipelineProcessor] = Seq(),
-      responseProcessors: Seq[SearchPipelineProcessor] = Seq()
-  ): SearchPipeline = {
-    if (
-      phaseResultsProcessors.length + requestProcessors.length + responseProcessors.length == 0
-    ) {
-      throw new IllegalArgumentException(
-        "SearchPipeline should contain at least one processor"
-      )
-    }
-    new SearchPipeline(
-      id,
-      version,
-      description,
-      phaseResultsProcessors,
-      requestProcessors,
-      responseProcessors
-    )
-  }
-
   def fromRawResponse(resp: Map[String, Any]): SearchPipeline = {
     val (id, pipelineData) = resp.head
     val data = pipelineData.asInstanceOf[Map[String, Any]]
+    val processors = SearchPipelineProcessorType.values.flatMap { pType =>
+      data
+        .get(pType.name)
+        .toSeq
+        .flatMap(_.asInstanceOf[Seq[Any]])
+        .map(v =>
+          SearchPipelineProcessor
+            .fromRawResponse(v.asInstanceOf[Map[String, Any]], pType)
+        )
+    }.toSeq
     SearchPipeline(
       id = id,
       version = data.get("version").map(_.asInstanceOf[Int]),
       description = data.get("description").map(_.asInstanceOf[String]),
-      phaseResultsProcessors = data.get("phase_results_processors").toSeq.flatMap{
-        case items: Map[String, Any] => Seq()
-        case _ => Seq()
-      }
+      processors = processors
     )
   }
-
 }

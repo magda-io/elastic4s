@@ -36,6 +36,9 @@ trait SearchPipelineProcessor {
   def description: Option[String]
   def ignoreFailure: Option[Boolean]
   def builderFn(): XContentBuilder
+}
+
+object SearchPipelineProcessor {
   def fromRawResponse(
       resp: Map[String, Any],
       processorType: SearchPipelineProcessorType
@@ -60,7 +63,6 @@ case class CustomSearchPipelineProcessor(
   val description = None
   val ignoreFailure = None
   def builderFn(): XContentBuilder = jsonContentBuiler
-
 }
 
 object CustomSearchPipelineProcessor {
@@ -70,7 +72,7 @@ object CustomSearchPipelineProcessor {
   ): CustomSearchPipelineProcessor = {
     val (id, pipelineData) = resp.head
     val builder = XContentFactory.jsonBuilder()
-    builder.autovalue(id, pipelineData)
+    builder.autofield(id, pipelineData)
     CustomSearchPipelineProcessor(
       processorType = processorType,
       jsonContentBuiler = builder

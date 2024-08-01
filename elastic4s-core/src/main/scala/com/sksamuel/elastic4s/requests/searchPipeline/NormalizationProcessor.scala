@@ -52,7 +52,7 @@ object CombinationTechniqueType {
 
 case class CombinationTechnique(
     techniqueType: Option[CombinationTechniqueType] = None,
-    weights: Option[Seq[Float]] = None
+    weights: Option[Seq[Double]] = None
 )
 
 case class NormalizationProcessor(
@@ -94,12 +94,13 @@ object NormalizationProcessor {
     if (
       resp.isEmpty || resp.get("normalization-processor").isEmpty || !resp
         .get("normalization-processor")
+        .get
         .isInstanceOf[Map[String, Any]]
     ) {
       NormalizationProcessor()
     } else {
       val pData =
-        resp.get("normalization-processor").asInstanceOf[Map[String, Any]]
+        resp.get("normalization-processor").get.asInstanceOf[Map[String, Any]]
       NormalizationProcessor(
         tag = pData.get("tag").map(_.asInstanceOf[String]),
         description = pData.get("description").map(_.asInstanceOf[String]),
@@ -124,7 +125,7 @@ object NormalizationProcessor {
                   weights = v.get("parameters").flatMap {
                     case p: Map[String, Any] =>
                       p.get("weights").map {
-                        case ws: Seq[Any] => ws.map(_.asInstanceOf[Float])
+                        case ws: Seq[Any] => ws.map(_.asInstanceOf[Double])
                         case _            => Seq()
                       }
                     case _ => None
