@@ -1,6 +1,7 @@
 package com.sksamuel.elastic4s.requests.searchPipeline
 
-import com.sksamuel.elastic4s.json.XContentFactory
+import com.sksamuel.elastic4s.json.{XContentFactory}
+import com.sksamuel.elastic4s.testutils.StringExtensions._
 import com.sksamuel.elastic4s.{ElasticRequest, HttpEntity}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -20,10 +21,14 @@ class PutSearchPipelineRequestHandlerTest
         version = Some(1)
       )
     )
+    
     val correctJson =
-      XContentFactory
-        .parse("""{"description":"Do nothing","version":1}""")
-        .string
+      """
+        |{
+        | "version":1,
+        | "description":"Do nothing"
+        | }""".stripMargin.toCompactJson
+
     build(req) shouldBe ElasticRequest(
       "PUT",
       "/_search/pipeline/empty",
@@ -50,39 +55,37 @@ class PutSearchPipelineRequestHandlerTest
         )
       )
     )
-    val correctJson =
-      XContentFactory
-        .parse(
-          """
-            |{
-            |    "version": 2332,
-            |    "description": "Post processor for hybrid search",
-            |    "phase_results_processors": [
-            |      {
-            |        "normalization-processor": {
-            |          "normalization": {
-            |            "technique": "min_max"
-            |          },
-            |          "combination": {
-            |            "technique": "arithmetic_mean",
-            |            "parameters": {
-            |              "weights": [
-            |                0.3,
-            |                0.7
-            |              ]
-            |            }
-            |          }
-            |        }
-            |      }
-            |    ]
-            |}
-            |""".stripMargin.replace("\n", "")
-        )
-        .string
+    val correctJson = """
+      |{
+      |    "version": 2332,
+      |    "description": "Post processor for hybrid search",
+      |    "phase_results_processors": [
+      |      {
+      |        "normalization-processor": {
+      |          "normalization": {
+      |            "technique": "min_max"
+      |          },
+      |          "combination": {
+      |            "technique": "arithmetic_mean",
+      |            "parameters": {
+      |              "weights": [
+      |                0.3,
+      |                0.7
+      |              ]
+      |            }
+      |          }
+      |        }
+      |      }
+      |    ]
+      |}
+      |""".stripMargin.toCompactJson
+
     build(req) shouldBe ElasticRequest(
       "PUT",
       "/_search/pipeline/nlp-pipeline",
-      HttpEntity(correctJson)
+      HttpEntity(
+        correctJson
+      )
     )
   }
 
@@ -92,7 +95,7 @@ class PutSearchPipelineRequestHandlerTest
         "test-custom",
         processors = Seq(
           CustomSearchPipelineProcessor(
-            SearchPipelineProcessorType.SearchRequestProcessor, {
+            SearchPipelineProcessorType.SearchResponseProcessor, {
               val b = XContentFactory.jsonBuilder()
               b.startObject("rename_field")
               b.field("field", "message")
@@ -104,22 +107,18 @@ class PutSearchPipelineRequestHandlerTest
         )
       )
     )
-    val correctJson = XContentFactory
-      .parse(
-        """
-          |{
-          |    "response_processors": [
-          |      {
-          |       "rename_field": {
-          |        "field": "message",
-          |        "target_field": "notification"
-          |       }
-          |      }
-          |    ]
-          |}
-          |""".stripMargin.replace("\n", "")
-      )
-      .string
+    val correctJson = """
+      |{
+      |    "response_processors": [
+      |      {
+      |       "rename_field": {
+      |        "field": "message",
+      |        "target_field": "notification"
+      |       }
+      |      }
+      |    ]
+      |}
+      |""".stripMargin.toCompactJson
 
     build(req) shouldBe ElasticRequest(
       "PUT",
