@@ -9,8 +9,6 @@ on:
       - '*.yml'
     branches:
       - master
-      - opensearch
-      - release/*
 
 jobs:
   scala-2_12:
