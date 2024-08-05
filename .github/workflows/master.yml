@@ -9,6 +9,7 @@ on:
       - '*.yml'
     branches:
       - master
+      - opensearch
 
 jobs:
   scala-2_12:
