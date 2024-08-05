@@ -60,13 +60,35 @@ object KnnVectorFieldBuilderFn {
               .get("name")
               .map(_.asInstanceOf[String])
               .flatMap(v => FaissEncoderName.withName(v))
-            val m = e.get("m").map(_.asInstanceOf[Int])
-            val codeSize = e.get("code_size").map(_.asInstanceOf[Int])
-            val sqClip = e.get("clip").map(_.asInstanceOf[Boolean])
+            val m = e
+              .get("parameters")
+              .flatMap(p =>
+                p.asInstanceOf[Map[String, Any]]
+                  .get("m")
+                  .map(_.asInstanceOf[Int])
+              )
+            val codeSize = e
+              .get("parameters")
+              .flatMap(p =>
+                p.asInstanceOf[Map[String, Any]]
+                  .get("code_size")
+                  .map(_.asInstanceOf[Int])
+              )
+            val sqClip = e
+              .get("parameters")
+              .flatMap(p =>
+                p.asInstanceOf[Map[String, Any]]
+                  .get("clip")
+                  .map(_.asInstanceOf[Boolean])
+              )
             val sqType = e
-              .get("type")
-              .map(_.asInstanceOf[String])
-              .flatMap(v => FaissScalarQuantizationType.withName(v))
+              .get("parameters")
+              .flatMap(p =>
+                p.asInstanceOf[Map[String, Any]]
+                  .get("type")
+                  .map(_.asInstanceOf[String])
+                  flatMap (v => FaissScalarQuantizationType.withName(v))
+              )
             FaissEncoder(
               name = name,
               m = m,
@@ -152,7 +174,7 @@ object KnnVectorFieldBuilderFn {
           encoder.name.foreach(v => builder.field("name", v.name))
 
           // start of encoder `parameters` field
-          builder.startObject("encoder")
+          builder.startObject("parameters")
           encoder match {
             case e: FaissEncoder =>
               e.m.foreach(v => builder.field("m", v))
@@ -174,7 +196,7 @@ object KnnVectorFieldBuilderFn {
           encoder.name.foreach(v => builder.field("name", v.name))
 
           // start of encoder `parameters` field
-          builder.startObject("encoder")
+          builder.startObject("parameters")
           encoder match {
             case e: FaissEncoder =>
               e.m.foreach(v => builder.field("m", v))

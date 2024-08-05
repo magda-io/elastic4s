@@ -128,7 +128,7 @@ class KnnVectorFieldTest extends AnyFlatSpec with Matchers with ElasticApi {
         |"dimension":512,
         |"method":{"name":"hnsw","engine":"faiss","space_type":"l2",
         |"parameters":{"ef_construction":100,"m":50,"ef_search":50,
-        |"encoder":{"name":"pq","encoder":{"m":50,"code_size":100}}}}}""".stripMargin.replace(
+        |"encoder":{"name":"pq","parameters":{"m":50,"code_size":100}}}}}""".stripMargin.replace(
         "\n",
         ""
       )
@@ -161,7 +161,7 @@ class KnnVectorFieldTest extends AnyFlatSpec with Matchers with ElasticApi {
         |"dimension":512,
         |"method":{"name":"hnsw","engine":"faiss","space_type":"innerproduct",
         |"parameters":{"ef_construction":100,"m":50,"ef_search":50,
-        |"encoder":{"name":"sq","encoder":{"clip":true,"type":"fp16"}}}}}""".stripMargin.replace(
+        |"encoder":{"name":"sq","parameters":{"clip":true,"type":"fp16"}}}}}""".stripMargin.replace(
         "\n",
         ""
       )
@@ -182,12 +182,11 @@ class KnnVectorFieldTest extends AnyFlatSpec with Matchers with ElasticApi {
         KnnVectorField(
           name = "myfield123",
           dimension = 512,
-          HnswParameters(
+          IvfParameters(
             engine = Some(KnnEngine.faiss),
             spaceType = Some(SpaceType.innerProduct),
-            efConstruction = Some(100),
-            m = Some(50),
-            efSearch = Some(50),
+            nlist = Some(4),
+            nprobes = Some(2),
             encoder = Some(
               FaissEncoder(
                 Some(FaissEncoderName.sq),
@@ -201,9 +200,9 @@ class KnnVectorFieldTest extends AnyFlatSpec with Matchers with ElasticApi {
       .string shouldBe
       """{"type":"knn_vector",
         |"dimension":512,
-        |"method":{"name":"hnsw","engine":"faiss","space_type":"innerproduct",
-        |"parameters":{"ef_construction":100,"m":50,"ef_search":50,
-        |"encoder":{"name":"sq","encoder":{"clip":true,"type":"fp16"}}}}}""".stripMargin.replace(
+        |"method":{"name":"ivf","engine":"faiss","space_type":"innerproduct",
+        |"parameters":{"nlist":4,"nprobes":2,
+        |"encoder":{"name":"sq","parameters":{"clip":true,"type":"fp16"}}}}}""".stripMargin.replace(
         "\n",
         ""
       )

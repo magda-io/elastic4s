@@ -286,7 +286,7 @@ object IvfParameters {
       engine.get match {
         case KnnEngine.faiss =>
           // do nothing as all parameters are accepted
-          if (!encoder.isInstanceOf[FaissEncoder]) {
+          if (encoder.nonEmpty && !encoder.get.isInstanceOf[FaissEncoder]) {
             throw new IllegalArgumentException(
               "encoder must be instance of FaissEncoder for faiss engine"
             )
