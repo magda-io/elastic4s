@@ -87,7 +87,7 @@ object KnnVectorFieldBuilderFn {
                 p.asInstanceOf[Map[String, Any]]
                   .get("type")
                   .map(_.asInstanceOf[String])
-                  flatMap (v => FaissScalarQuantizationType.withName(v))
+                  .flatMap(v => FaissScalarQuantizationType.withName(v))
               )
             FaissEncoder(
               name = name,
