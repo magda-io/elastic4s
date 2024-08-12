@@ -87,6 +87,8 @@ trait SearchHandlers {
 
       request.typedKeys.map(_.toString).foreach(params.put("typed_keys", _))
 
+      request.searchPipeline.foreach(params.put("search_pipeline", _))
+
       val body = request.source.getOrElse(SearchBodyBuilderFn(request, customAggregationHandler).string)
       ElasticRequest("POST", endpoint, params.toMap, HttpEntity(body, "application/json"))
     }
