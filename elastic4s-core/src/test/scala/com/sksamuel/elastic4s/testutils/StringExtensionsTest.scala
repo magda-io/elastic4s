@@ -14,4 +14,14 @@ class StringExtensionsTest extends AnyFlatSpec with Matchers {
     "one\r\ntwo\nthree\r\n".withUnixLineEndings shouldBe "one\ntwo\nthree\n"
   }
 
+  it should "convert JSON string to compact JSON string without whitespace" in {
+    s"""
+       | {
+       |    "test" : 123,
+       |    "test2" : "sdsd sds",
+       |     "test array": [1,2,  3 ]
+       | }
+       |""".stripMargin.toCompactJson shouldBe """{"test":123,"test2":"sdsd sds","test array":[1,2,3]}"""
+  }
+
 }

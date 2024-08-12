@@ -1,5 +1,7 @@
 name: release
 
+run-name: Release - ${{ inputs.version }} on ${{ inputs.branch }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -9,7 +11,7 @@ on:
       branch:
         description: "The branch to release from"
         required: true
-        default: 'master'
+        default: 'opensearch'
 
 jobs:
   release:
@@ -32,7 +34,7 @@ jobs:
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v3
         with:
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-private-key: ${{ secrets.PGP_SECRET }}
           passphrase: ${{ secrets.PGP_PASSPHRASE }}
 
       - name: GPG user IDs
@@ -46,22 +48,22 @@ jobs:
         run: sbt ++2.12.12 publishSigned
         env:
           RELEASE_VERSION: ${{ github.event.inputs.version }}
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          OSSRH_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
 
       - name: publish 2.13 release
         run: sbt ++2.13.4 publishSigned
         env:
           RELEASE_VERSION: ${{ github.event.inputs.version }}
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          OSSRH_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
 
       - name: publish 3.0 release
         run: sbt ++3.3.0 elastic4s-scala3/publishSigned
         env:
           RELEASE_VERSION: ${{ github.event.inputs.version }}
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          OSSRH_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
 
       - name: tag release
         run: |

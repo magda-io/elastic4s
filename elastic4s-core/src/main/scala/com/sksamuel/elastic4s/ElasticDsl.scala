@@ -26,6 +26,7 @@ import com.sksamuel.elastic4s.handlers.update.UpdateHandlers
 import com.sksamuel.elastic4s.handlers.validate.ValidateHandlers
 import com.sksamuel.elastic4s.json.XContentBuilder
 import com.sksamuel.elastic4s.requests.ingest.IngestHandlers
+import com.sksamuel.elastic4s.requests.searchPipeline.SearchPipelineHandlers
 import com.sksamuel.elastic4s.requests.searches.aggs.AbstractAggregation
 import com.sksamuel.elastic4s.requests.searches.template.SearchTemplateHandlers
 import com.sksamuel.elastic4s.requests.searches.{SearchHandlers, SearchScrollHandlers, defaultCustomAggregationHandler}
@@ -47,6 +48,7 @@ with IndexAliasHandlers
 with IndexStatsHandlers
 with IndexTemplateHandlers
 with IngestHandlers
+with SearchPipelineHandlers
 with LocksHandlers
 with MappingHandlers
 with NodesHandlers
