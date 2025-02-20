@@ -61,7 +61,8 @@ case class SearchRequest(indexes: Indexes,
                          ext: Map[String, Any] = Map.empty,
                          knn: Option[Knn] = None,
                          multipleKnn: Seq[Knn] = Nil,
-                         pit: Option[Pit] = None) {
+                         pit: Option[Pit] = None,
+                         searchPipeline: Option[String] = None) {
 
   /** Adds a single string query to this search
     *
@@ -302,5 +303,9 @@ case class SearchRequest(indexes: Indexes,
   def pit(pit: Pit): SearchRequest = {
     // When a pit is provided, no target must be given
     copy(pit = Some(pit), indexes = Indexes(Nil))
+  }
+
+  def searchPipeline(pipelineId: String): SearchRequest = {
+    copy(searchPipeline = Some(pipelineId))
   }
 }
