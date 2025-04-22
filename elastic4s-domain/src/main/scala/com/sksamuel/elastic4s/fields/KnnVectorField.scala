@@ -313,7 +313,9 @@ object IvfParameters {
 case class KnnVectorField(
     name: String,
     dimension: Int,
-    parameters: KnnMethodParameters
+    parameters: KnnMethodParameters,
+    mode: Option[String] = None,
+    compressionLevel: Option[String] = None,
 ) extends ElasticField {
   override def `type`: String = KnnVectorField.`type`
 }
@@ -324,12 +326,23 @@ object KnnVectorField {
   def apply(
       name: String,
       dimension: Int,
-      parameters: KnnMethodParameters
+      parameters: KnnMethodParameters,
+      mode: Option[String] = None,
+      compressionLevel: Option[String] = None,
   ): KnnVectorField = {
+
+    if (mode.contains("on_disk")) {
+      if (parameters.encoder.isDefined){
+        throw new IllegalArgumentException("encoder cannot be set when using on_disk vector workload mode")
+      }
+    }
+
     new KnnVectorField(
       name = name,
       dimension = dimension,
-      parameters = parameters
+      parameters = parameters,
+      mode= mode,
+      compressionLevel = compressionLevel,
     )
   }
 

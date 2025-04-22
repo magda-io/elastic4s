@@ -232,4 +232,56 @@ class KnnVectorFieldTest extends AnyFlatSpec with Matchers with ElasticApi {
       )
   }
 
+  "A KnnVectorField" should "support vector_workload and compression options" in {
+    KnnVectorFieldBuilderFn
+      .build(
+        KnnVectorField(
+          name = "myfield123",
+          dimension = 512,
+          HnswParameters(
+            engine = Some(KnnEngine.lucene),
+            spaceType = Some(SpaceType.cosine),
+            efConstruction = Some(100),
+            m = Some(50)
+          ),
+          mode = Some("on_disk"),
+          compressionLevel = Some("32x")
+        )
+      )
+      .string shouldBe
+      """{"type":"knn_vector",
+        |"dimension":512,
+        |"mode":"on_disk",
+        |"compression_level":"32x",
+        |"method":{"name":"hnsw","engine":"lucene","space_type":"cosinesimil",
+        |"parameters":{"ef_construction":100,"m":50}}}""".stripMargin.replace(
+        "\n",
+        ""
+      )
+  }
+
+  "A KnnVectorField" should "throw error when encoder is set in on_disk mode" in {
+    val exception = intercept[IllegalArgumentException](
+      KnnVectorField(
+        name = "myfield123",
+        dimension = 512,
+        parameters = HnswParameters(
+          engine = Some(KnnEngine.faiss),
+          spaceType = Some(SpaceType.l2),
+          efConstruction = Some(100),
+          m = Some(16),
+          encoder = Some(
+            FaissEncoder(
+              Some(FaissEncoderName.pq),
+              codeSize = Some(100),
+              m = Some(50)
+            )
+          )
+        ),
+        mode = Some("on_disk")
+      )
+    )
+    exception shouldBe a[RuntimeException]
+    exception.getMessage shouldBe "encoder cannot be set when using on_disk vector workload mode"
+  }
 }

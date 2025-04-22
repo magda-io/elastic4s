@@ -15,9 +15,11 @@ import com.sksamuel.elastic4s.json.{XContentBuilder, XContentFactory}
 object KnnVectorFieldBuilderFn {
   def toField(name: String, values: Map[String, Any]): KnnVectorField = {
     KnnVectorField(
-      name,
-      values.get("dimension").map(_.asInstanceOf[Int]).get,
-      (values.get("method") match {
+      name = name,
+      dimension = values.get("dimension").map(_.asInstanceOf[Int]).get,
+      mode = values.get("mode").map(_.asInstanceOf[String]),
+      compressionLevel = values.get("compressionLevel").map(_.asInstanceOf[String]),
+      parameters = (values.get("method") match {
         case Some(v) =>
           val methodFields: Map[String, Any] = v.asInstanceOf[Map[String, Any]]
           val methodName = methodFields.get("name").map(_.asInstanceOf[String])
@@ -152,7 +154,8 @@ object KnnVectorFieldBuilderFn {
     val builder = XContentFactory.jsonBuilder()
     builder.field("type", field.`type`)
     builder.field("dimension", field.dimension)
-
+    field.mode.foreach(v => builder.field("mode", v))
+    field.compressionLevel.foreach(v => builder.field("compression_level", v))
     // start of `method` field
     builder.startObject("method")
 
