@@ -260,7 +260,7 @@ class KnnVectorFieldTest extends AnyFlatSpec with Matchers with ElasticApi {
             m = Some(50)
           ),
           mode = Some(VectorWorkloadMode.OnDisk),
-          compressionLevel = Some(CompressionLevel.X32)
+          compressionLevel = Some(CompressionLevel.`32x`)
         )
       )
       .string shouldBe
@@ -275,7 +275,31 @@ class KnnVectorFieldTest extends AnyFlatSpec with Matchers with ElasticApi {
       )
   }
 
-  "A KnnVectorField" should "throw error when encoder is set in on_disk mode" in {
+  "A KnnVectorField" should "allow encoder when mode is on_disk and compressionLevel is not set" in {
+    noException shouldBe thrownBy {
+      KnnVectorField(
+        name = "myfield123",
+        dimension = 512,
+        parameters = HnswParameters(
+          engine = Some(KnnEngine.faiss),
+          spaceType = Some(SpaceType.l2),
+          efConstruction = Some(100),
+          m = Some(16),
+          encoder = Some(
+            FaissEncoder(
+              Some(FaissEncoderName.sq),
+              sqType = Some(FaissScalarQuantizationType.fp16),
+              sqClip = Some(false)
+            )
+          )
+        ),
+        mode = Some(VectorWorkloadMode.OnDisk),
+        compressionLevel = None
+      )
+    }
+  }
+
+  "A KnnVectorField" should "throw error when both encoder and compressionLevel are set" in {
     val exception = intercept[IllegalArgumentException](
       KnnVectorField(
         name = "myfield123",
@@ -293,11 +317,12 @@ class KnnVectorFieldTest extends AnyFlatSpec with Matchers with ElasticApi {
             )
           )
         ),
-        mode = Some(VectorWorkloadMode.OnDisk)
+        mode = Some(VectorWorkloadMode.OnDisk),
+        compressionLevel = Some(CompressionLevel.`32x`)
       )
     )
     exception shouldBe a[RuntimeException]
-    exception.getMessage shouldBe "encoder cannot be set when using on_disk vector workload mode"
+    exception.getMessage shouldBe "encoder cannot be set when compression_level is specified"
   }
 
   "A KnnVectorField" should "throw error when compression_level is not support by the engine" in {
@@ -313,7 +338,7 @@ class KnnVectorFieldTest extends AnyFlatSpec with Matchers with ElasticApi {
         ),
         mode = Some(VectorWorkloadMode.OnDisk),
         compressionLevel =
-          Some(CompressionLevel.X4) // only lucene supported '4x'
+          Some(CompressionLevel.`4x`) // only lucene supported '4x'
       )
     )
     exception shouldBe a[RuntimeException]

@@ -339,33 +339,33 @@ sealed trait CompressionLevel {
 }
 
 object CompressionLevel {
-  case object X1 extends CompressionLevel {
+  case object `1x` extends CompressionLevel {
     val name = "1x"
     val supportedEngines: Set[KnnEngine] =
       Set(KnnEngine.faiss, KnnEngine.lucene, KnnEngine.nmslib)
   }
-  case object X2 extends CompressionLevel {
+  case object `2x` extends CompressionLevel {
     val name = "2x"
     val supportedEngines: Set[KnnEngine] = Set(KnnEngine.faiss)
   }
-  case object X4 extends CompressionLevel {
+  case object `4x` extends CompressionLevel {
     val name = "4x"
     val supportedEngines: Set[KnnEngine] = Set(KnnEngine.lucene)
   }
-  case object X8 extends CompressionLevel {
+  case object `8x` extends CompressionLevel {
     val name = "8x"
     val supportedEngines: Set[KnnEngine] = Set(KnnEngine.faiss)
   }
-  case object X16 extends CompressionLevel {
+  case object `16x` extends CompressionLevel {
     val name = "16x"
     val supportedEngines: Set[KnnEngine] = Set(KnnEngine.faiss)
   }
-  case object X32 extends CompressionLevel {
+  case object `32x` extends CompressionLevel {
     val name = "32x"
     val supportedEngines: Set[KnnEngine] = Set(KnnEngine.faiss)
   }
 
-  val values: Set[CompressionLevel] = Set(X1, X2, X4, X8, X16, X32)
+  val values: Set[CompressionLevel] = Set(`1x`, `2x`, `4x`, `8x`, `16x`, `32x`)
 
   def withName(name: String): CompressionLevel =
     values
@@ -395,16 +395,12 @@ object KnnVectorField {
       parameters: KnnMethodParameters,
       compressionLevel: Option[CompressionLevel]
   ): Unit = {
-    mode match {
-      case Some(VectorWorkloadMode.OnDisk) =>
-        if (parameters.encoder.isDefined) {
-          throw new IllegalArgumentException(
-            "encoder cannot be set when using on_disk vector workload mode"
-          )
-        }
-      case Some(VectorWorkloadMode.InMemory) => ()
-      case None                              => ()
+    if (compressionLevel.isDefined && parameters.encoder.isDefined) {
+      throw new IllegalArgumentException(
+        "encoder cannot be set when compression_level is specified"
+      )
     }
+
     if (compressionLevel.isDefined && parameters.engine.isDefined) {
       val cl = compressionLevel.get
       val engine = parameters.engine.get
