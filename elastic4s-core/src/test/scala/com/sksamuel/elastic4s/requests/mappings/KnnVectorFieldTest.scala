@@ -1,7 +1,19 @@
 package com.sksamuel.elastic4s.requests.mappings
 
 import com.sksamuel.elastic4s.ElasticApi
-import com.sksamuel.elastic4s.fields.{FaissEncoder, FaissEncoderName, FaissScalarQuantizationType, HnswParameters, IvfParameters, KnnEngine, KnnMethodEncoder, KnnVectorField, SpaceType}
+import com.sksamuel.elastic4s.fields.{
+  FaissEncoder,
+  FaissEncoderName,
+  FaissScalarQuantizationType,
+  HnswParameters,
+  IvfParameters,
+  KnnEngine,
+  KnnMethodEncoder,
+  KnnVectorField,
+  SpaceType,
+  VectorWorkloadMode,
+  CompressionLevel
+}
 import com.sksamuel.elastic4s.handlers.fields.KnnVectorFieldBuilderFn
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -128,10 +140,11 @@ class KnnVectorFieldTest extends AnyFlatSpec with Matchers with ElasticApi {
         |"dimension":512,
         |"method":{"name":"hnsw","engine":"faiss","space_type":"l2",
         |"parameters":{"ef_construction":100,"m":50,"ef_search":50,
-        |"encoder":{"name":"pq","parameters":{"m":50,"code_size":100}}}}}""".stripMargin.replace(
-        "\n",
-        ""
-      )
+        |"encoder":{"name":"pq","parameters":{"m":50,"code_size":100}}}}}""".stripMargin
+        .replace(
+          "\n",
+          ""
+        )
   }
 
   "A KnnVectorField" should "support full faiss HnswParameters (SQ)" in {
@@ -161,10 +174,11 @@ class KnnVectorFieldTest extends AnyFlatSpec with Matchers with ElasticApi {
         |"dimension":512,
         |"method":{"name":"hnsw","engine":"faiss","space_type":"innerproduct",
         |"parameters":{"ef_construction":100,"m":50,"ef_search":50,
-        |"encoder":{"name":"sq","parameters":{"clip":true,"type":"fp16"}}}}}""".stripMargin.replace(
-        "\n",
-        ""
-      )
+        |"encoder":{"name":"sq","parameters":{"clip":true,"type":"fp16"}}}}}""".stripMargin
+        .replace(
+          "\n",
+          ""
+        )
   }
 
   "A KnnVectorField" should "support empty IvfParameters" in {
@@ -202,10 +216,11 @@ class KnnVectorFieldTest extends AnyFlatSpec with Matchers with ElasticApi {
         |"dimension":512,
         |"method":{"name":"ivf","engine":"faiss","space_type":"innerproduct",
         |"parameters":{"nlist":4,"nprobes":2,
-        |"encoder":{"name":"sq","parameters":{"clip":true,"type":"fp16"}}}}}""".stripMargin.replace(
-        "\n",
-        ""
-      )
+        |"encoder":{"name":"sq","parameters":{"clip":true,"type":"fp16"}}}}}""".stripMargin
+        .replace(
+          "\n",
+          ""
+        )
   }
 
   "A KnnVectorField" should "support full lucene HnswParameters" in {
@@ -232,4 +247,101 @@ class KnnVectorFieldTest extends AnyFlatSpec with Matchers with ElasticApi {
       )
   }
 
+  "A KnnVectorField" should "support vector_workload and compression options" in {
+    KnnVectorFieldBuilderFn
+      .build(
+        KnnVectorField(
+          name = "myfield123",
+          dimension = 512,
+          HnswParameters(
+            engine = Some(KnnEngine.faiss),
+            spaceType = Some(SpaceType.innerProduct),
+            efConstruction = Some(100),
+            m = Some(50)
+          ),
+          mode = Some(VectorWorkloadMode.OnDisk),
+          compressionLevel = Some(CompressionLevel.`32x`)
+        )
+      )
+      .string shouldBe
+      """{"type":"knn_vector",
+        |"dimension":512,
+        |"mode":"on_disk",
+        |"compression_level":"32x",
+        |"method":{"name":"hnsw","engine":"faiss","space_type":"innerproduct",
+        |"parameters":{"ef_construction":100,"m":50}}}""".stripMargin.replace(
+        "\n",
+        ""
+      )
+  }
+
+  "A KnnVectorField" should "allow encoder when mode is on_disk and compressionLevel is not set" in {
+    noException shouldBe thrownBy {
+      KnnVectorField(
+        name = "myfield123",
+        dimension = 512,
+        parameters = HnswParameters(
+          engine = Some(KnnEngine.faiss),
+          spaceType = Some(SpaceType.l2),
+          efConstruction = Some(100),
+          m = Some(16),
+          encoder = Some(
+            FaissEncoder(
+              Some(FaissEncoderName.sq),
+              sqType = Some(FaissScalarQuantizationType.fp16),
+              sqClip = Some(false)
+            )
+          )
+        ),
+        mode = Some(VectorWorkloadMode.OnDisk),
+        compressionLevel = None
+      )
+    }
+  }
+
+  "A KnnVectorField" should "throw error when both encoder and compressionLevel are set" in {
+    val exception = intercept[IllegalArgumentException](
+      KnnVectorField(
+        name = "myfield123",
+        dimension = 512,
+        parameters = HnswParameters(
+          engine = Some(KnnEngine.faiss),
+          spaceType = Some(SpaceType.l2),
+          efConstruction = Some(100),
+          m = Some(16),
+          encoder = Some(
+            FaissEncoder(
+              Some(FaissEncoderName.pq),
+              codeSize = Some(100),
+              m = Some(50)
+            )
+          )
+        ),
+        mode = Some(VectorWorkloadMode.OnDisk),
+        compressionLevel = Some(CompressionLevel.`32x`)
+      )
+    )
+    exception shouldBe a[RuntimeException]
+    exception.getMessage shouldBe "encoder cannot be set when compression_level is specified"
+  }
+
+  "A KnnVectorField" should "throw error when compression_level is not support by the engine" in {
+    val exception = intercept[IllegalArgumentException](
+      KnnVectorField(
+        name = "myfield123",
+        dimension = 512,
+        parameters = HnswParameters(
+          engine = Some(KnnEngine.faiss),
+          spaceType = Some(SpaceType.l2),
+          efConstruction = Some(100),
+          m = Some(16)
+        ),
+        mode = Some(VectorWorkloadMode.OnDisk),
+        compressionLevel =
+          Some(CompressionLevel.`4x`) // only lucene supported '4x'
+      )
+    )
+    exception shouldBe a[RuntimeException]
+    exception.getMessage shouldBe "compressionLevel 4x is not supported by engine faiss"
+  }
 }

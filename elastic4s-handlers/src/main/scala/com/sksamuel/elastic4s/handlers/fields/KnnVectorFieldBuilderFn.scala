@@ -1,6 +1,7 @@
 package com.sksamuel.elastic4s.handlers.fields
 
 import com.sksamuel.elastic4s.fields.{
+  CompressionLevel,
   FaissEncoder,
   FaissEncoderName,
   FaissScalarQuantizationType,
@@ -8,16 +9,25 @@ import com.sksamuel.elastic4s.fields.{
   IvfParameters,
   KnnEngine,
   KnnVectorField,
-  SpaceType
+  SpaceType,
+  VectorWorkloadMode
 }
 import com.sksamuel.elastic4s.json.{XContentBuilder, XContentFactory}
 
 object KnnVectorFieldBuilderFn {
   def toField(name: String, values: Map[String, Any]): KnnVectorField = {
     KnnVectorField(
-      name,
-      values.get("dimension").map(_.asInstanceOf[Int]).get,
-      (values.get("method") match {
+      name = name,
+      dimension = values.get("dimension").map(_.asInstanceOf[Int]).get,
+      mode = values
+        .get("mode")
+        .map(_.asInstanceOf[String])
+        .flatMap(v => Some(VectorWorkloadMode.withName(v))),
+      compressionLevel = values
+        .get("compressionLevel")
+        .map(_.asInstanceOf[String])
+        .flatMap(v => Some(CompressionLevel.withName(v))),
+      parameters = (values.get("method") match {
         case Some(v) =>
           val methodFields: Map[String, Any] = v.asInstanceOf[Map[String, Any]]
           val methodName = methodFields.get("name").map(_.asInstanceOf[String])
@@ -152,7 +162,10 @@ object KnnVectorFieldBuilderFn {
     val builder = XContentFactory.jsonBuilder()
     builder.field("type", field.`type`)
     builder.field("dimension", field.dimension)
-
+    field.mode.foreach(v => builder.field("mode", v.name))
+    field.compressionLevel.foreach(v =>
+      builder.field("compression_level", v.name)
+    )
     // start of `method` field
     builder.startObject("method")
 

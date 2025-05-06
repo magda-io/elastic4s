@@ -310,10 +310,79 @@ object IvfParameters {
   }
 }
 
+sealed trait VectorWorkloadMode {
+  def name: String
+}
+
+object VectorWorkloadMode {
+  case object InMemory extends VectorWorkloadMode {
+    val name = "in_memory"
+  }
+  case object OnDisk extends VectorWorkloadMode {
+    val name = "on_disk"
+  }
+  val values: Set[VectorWorkloadMode] = Set(InMemory, OnDisk)
+
+  def withName(name: String): VectorWorkloadMode =
+    values
+      .find(v => v.name == name)
+      .getOrElse(
+        throw new IllegalArgumentException(
+          s"Unsupported vector workload mode: $name"
+        )
+      )
+}
+
+sealed trait CompressionLevel {
+  def name: String
+  def supportedEngines: Set[KnnEngine]
+}
+
+object CompressionLevel {
+  case object `1x` extends CompressionLevel {
+    val name = "1x"
+    val supportedEngines: Set[KnnEngine] =
+      Set(KnnEngine.faiss, KnnEngine.lucene, KnnEngine.nmslib)
+  }
+  case object `2x` extends CompressionLevel {
+    val name = "2x"
+    val supportedEngines: Set[KnnEngine] = Set(KnnEngine.faiss)
+  }
+  case object `4x` extends CompressionLevel {
+    val name = "4x"
+    val supportedEngines: Set[KnnEngine] = Set(KnnEngine.lucene)
+  }
+  case object `8x` extends CompressionLevel {
+    val name = "8x"
+    val supportedEngines: Set[KnnEngine] = Set(KnnEngine.faiss)
+  }
+  case object `16x` extends CompressionLevel {
+    val name = "16x"
+    val supportedEngines: Set[KnnEngine] = Set(KnnEngine.faiss)
+  }
+  case object `32x` extends CompressionLevel {
+    val name = "32x"
+    val supportedEngines: Set[KnnEngine] = Set(KnnEngine.faiss)
+  }
+
+  val values: Set[CompressionLevel] = Set(`1x`, `2x`, `4x`, `8x`, `16x`, `32x`)
+
+  def withName(name: String): CompressionLevel =
+    values
+      .find(v => v.name == name)
+      .getOrElse(
+        throw new IllegalArgumentException(
+          s"Unsupported compression level: $name"
+        )
+      )
+}
+
 case class KnnVectorField(
     name: String,
     dimension: Int,
-    parameters: KnnMethodParameters
+    parameters: KnnMethodParameters,
+    mode: Option[VectorWorkloadMode] = None,
+    compressionLevel: Option[CompressionLevel] = None
 ) extends ElasticField {
   override def `type`: String = KnnVectorField.`type`
 }
@@ -321,16 +390,43 @@ case class KnnVectorField(
 object KnnVectorField {
   val `type`: String = "knn_vector"
 
+  private def validate(
+      mode: Option[VectorWorkloadMode],
+      parameters: KnnMethodParameters,
+      compressionLevel: Option[CompressionLevel]
+  ): Unit = {
+    if (compressionLevel.isDefined && parameters.encoder.isDefined) {
+      throw new IllegalArgumentException(
+        "encoder cannot be set when compression_level is specified"
+      )
+    }
+
+    if (compressionLevel.isDefined && parameters.engine.isDefined) {
+      val cl = compressionLevel.get
+      val engine = parameters.engine.get
+
+      if (!cl.supportedEngines.contains(engine)) {
+        throw new IllegalArgumentException(
+          s"compressionLevel ${cl.name} is not supported by engine ${engine.name}"
+        )
+      }
+    }
+  }
+
   def apply(
       name: String,
       dimension: Int,
-      parameters: KnnMethodParameters
+      parameters: KnnMethodParameters,
+      mode: Option[VectorWorkloadMode] = None,
+      compressionLevel: Option[CompressionLevel] = None
   ): KnnVectorField = {
+    validate(mode, parameters, compressionLevel)
     new KnnVectorField(
       name = name,
       dimension = dimension,
-      parameters = parameters
+      parameters = parameters,
+      mode = mode,
+      compressionLevel = compressionLevel
     )
   }
-
 }
