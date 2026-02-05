@@ -89,7 +89,13 @@ lazy val pomSettings = Seq(
 )
 
 lazy val credentialSettings = Seq(
-  credentials := Seq(
+  ThisBuild / credentials ++= Seq(
+    Credentials(
+      "OSSRH Staging API Service",
+      "ossrh-staging-api.central.sonatype.com",
+      sys.env.getOrElse("OSSRH_USERNAME", ""),
+      sys.env.getOrElse("OSSRH_PASSWORD", "")
+    ),
     Credentials(
       "Sonatype Nexus Repository Manager",
       "ossrh-staging-api.central.sonatype.com",
