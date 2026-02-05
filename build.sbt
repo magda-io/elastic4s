@@ -20,7 +20,7 @@ def publishVersion = if (isRelease) releaseVersion else "8.11.7." + githubRunNum
 // set by github actions and used as the snapshot build number
 def githubRunNumber = sys.env.getOrElse("GITHUB_RUN_NUMBER", "local")
 
-// creds for release to maven central
+// creds for Central Portal publishing
 def ossrhUsername = sys.env.getOrElse("OSSRH_USERNAME", "")
 def ossrhPassword = sys.env.getOrElse("OSSRH_PASSWORD", "")
 
@@ -55,11 +55,10 @@ lazy val publishSettings = Seq(
   releaseCrossBuild := true,
   releasePublishArtifactsAction := PgpKeys.publishSigned.value,
   publishTo := {
-    val nexus = "https://oss.sonatype.org/"
     if (isRelease)
-      Some("releases" at nexus + "service/local/staging/deploy/maven2")
+      Some("releases" at "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
     else
-      Some("snapshots" at nexus + "content/repositories/snapshots")
+      Some("snapshots" at "https://central.sonatype.com/repository/maven-snapshots/")
   }
 )
 
@@ -90,12 +89,20 @@ lazy val pomSettings = Seq(
 )
 
 lazy val credentialSettings = Seq(
-  credentials := Seq(Credentials(
-    "Sonatype Nexus Repository Manager",
-    "oss.sonatype.org",
-    sys.env.getOrElse("OSSRH_USERNAME", ""),
-    sys.env.getOrElse("OSSRH_PASSWORD", "")
-  ))
+  credentials := Seq(
+    Credentials(
+      "Sonatype Nexus Repository Manager",
+      "ossrh-staging-api.central.sonatype.com",
+      sys.env.getOrElse("OSSRH_USERNAME", ""),
+      sys.env.getOrElse("OSSRH_PASSWORD", "")
+    ),
+    Credentials(
+      "Sonatype Nexus Repository Manager",
+      "central.sonatype.com",
+      sys.env.getOrElse("OSSRH_USERNAME", ""),
+      sys.env.getOrElse("OSSRH_PASSWORD", "")
+    )
+  )
 )
 
 lazy val noPublishSettings = Seq(

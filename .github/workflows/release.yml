@@ -69,6 +69,14 @@ jobs:
           OSSRH_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
 
+      - name: Upload to Central Portal
+        run: |
+          curl -sSf -u "${OSSRH_USERNAME}:${OSSRH_PASSWORD}" \
+            -X POST "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/io.github.t83714"
+        env:
+          OSSRH_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+
       - name: tag release
         run: |
           git tag v${{ github.event.inputs.version }}
